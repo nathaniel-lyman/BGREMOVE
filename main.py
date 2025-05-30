@@ -1,7 +1,6 @@
 import os
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import StreamingResponse
-from rembg import remove
 from io import BytesIO
 from PIL import Image
 
@@ -15,14 +14,22 @@ def root():
 def health():
     return {"status": "healthy"}
 
-@app.get("/test")
-def test():
-    return {"test": "endpoint working"}
+@app.get("/test-rembg")
+def test_rembg():
+    """Test if rembg can be imported"""
+    try:
+        from rembg import remove
+        return {"status": "success", "message": "rembg imported successfully"}
+    except Exception as e:
+        return {"status": "error", "message": f"rembg import failed: {str(e)}"}
 
 @app.post("/remove-background/")
 async def remove_bg(file: UploadFile = File(...)):
     """Remove background from uploaded image"""
     try:
+        # Import rembg only when needed to avoid startup delays
+        from rembg import remove
+        
         contents = await file.read()
         output = remove(contents)
         image = Image.open(BytesIO(output)).convert("RGBA")
@@ -34,18 +41,12 @@ async def remove_bg(file: UploadFile = File(...)):
         return {"error": f"Failed to process image: {str(e)}"}
 
 def _get_port() -> int:
-    """Return the port for the web server.
-
-    Render provides the ``PORT`` environment variable when starting the
-    service. If it is not set or is not a valid integer, fall back to 10000.
-    """
+    """Return the port for the web server."""
     try:
         return int(os.environ.get("PORT", "10000"))
     except (TypeError, ValueError):
         return 10000
 
-
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("main:app", host="0.0.0.0", port=_get_port())
