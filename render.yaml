@@ -1,6 +1,7 @@
 services:
   - type: web
-    name: remove-bg-api
+    name: bgremove-service
     env: python
-    buildCommand: ""
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port 8000"
