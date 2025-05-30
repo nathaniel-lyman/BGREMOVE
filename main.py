@@ -1,8 +1,8 @@
 import os
+import asyncio
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import StreamingResponse
 from io import BytesIO
-from PIL import Image
 
 app = FastAPI(title="Background Removal API", version="1.0.0")
 
@@ -18,7 +18,7 @@ def health():
 def test_rembg():
     """Test if rembg can be imported"""
     try:
-        from rembg import remove
+        from rembg import remove  # noqa: F401
         return {"status": "success", "message": "rembg imported successfully"}
     except Exception as e:
         return {"status": "error", "message": f"rembg import failed: {str(e)}"}
@@ -29,14 +29,10 @@ async def remove_bg(file: UploadFile = File(...)):
     try:
         # Import rembg only when needed to avoid startup delays
         from rembg import remove
-        
+
         contents = await file.read()
-        output = remove(contents)
-        image = Image.open(BytesIO(output)).convert("RGBA")
-        img_io = BytesIO()
-        image.save(img_io, format="PNG")
-        img_io.seek(0)
-        return StreamingResponse(img_io, media_type="image/png")
+        output = await asyncio.to_thread(remove, contents)
+        return StreamingResponse(BytesIO(output), media_type="image/png")
     except Exception as e:
         return {"error": f"Failed to process image: {str(e)}"}
 
