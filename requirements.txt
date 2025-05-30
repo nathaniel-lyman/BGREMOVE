@@ -1,3 +1,4 @@
 fastapi
 gradio_client
 uvicorn
+python-multipart
