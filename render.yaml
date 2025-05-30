@@ -2,6 +2,6 @@ services:
   - type: web
     name: bgremove-service
     env: python
-    plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python main.py"
+    plan: free            # bump to starter-1GB if you hit OOM (see note 3)
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers
