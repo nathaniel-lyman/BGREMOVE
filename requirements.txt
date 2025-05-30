@@ -1,4 +1,5 @@
 fastapi
-gradio_client
 uvicorn
+rembg
+pillow
 python-multipart
